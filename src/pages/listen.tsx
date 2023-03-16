@@ -4,6 +4,7 @@ import Radio from "../../backend/build/contracts/Radio.json";
 import NFT from "../../backend/build/contracts/NFT.json";
 import Marquee from "react-fast-marquee";
 import { motion, AnimatePresence } from "framer-motion";
+import Navbar from "@/components/navbar";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -106,6 +107,33 @@ export default function ListenPage() {
     setModalMounted(true);
   }, []);
 
+  React.useEffect(() => {
+    if (audioRef.current) {
+      // Set initial progress to 0
+      setProgress(0);
+
+      // Update duration when the song changes
+      const updateDuration = () => {
+        if (audioRef.current) {
+          setDuration(audioRef.current.duration);
+        }
+      };
+
+      // Set the duration once the song is loaded
+      audioRef.current.addEventListener("loadedmetadata", updateDuration);
+
+      // Clean up the listener when the component unmounts
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener(
+            "loadedmetadata",
+            updateDuration
+          );
+        }
+      };
+    }
+  }, [currentIndex]);
+
   async function loadSongs() {
     console.log("Loading songs...");
     // @ts-ignore
@@ -175,8 +203,10 @@ export default function ListenPage() {
     setCurrentIndex(currentIndex === 0 ? nfts.length - 1 : currentIndex - 1);
     setIsPlaying(true);
   }
+
   return (
     <div className="h-screen">
+      <Navbar />
       <div className="flex h-full">
         {/* Static sidebar for desktop */}
         <div className="hidden lg:flex lg:flex-shrink-0">
@@ -393,20 +423,52 @@ export default function ListenPage() {
                           {/* @ts-ignore */}
                           {nfts[currentIndex].title}
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">Artist</p>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {/* @ts-ignore */}
+                          {nfts[currentIndex].seller}
+                        </p>
                       </HoverCardTrigger>
                       <HoverCardContent>
                         <div className="space-y-2">
-                          <h4 className="text-sm font-semibold">@nextjs</h4>
+                          <h4 className="text-sm font-semibold">
+                            {/* @ts-ignore */}
+                            {nfts[currentIndex].title}
+                          </h4>
                           <p className="text-sm">
-                            The React Framework – created and maintained by
-                            @vercel.
+                            {/* @ts-ignore */}
+                            {nfts[currentIndex].seller.slice(0, 5)}...
+                            {/* @ts-ignore */}
+                            {nfts[currentIndex].seller.slice(-4)}
                           </p>
                         </div>
                       </HoverCardContent>
                     </HoverCard>
                     <div className="mt-4">
-                      <Progress value={33} />
+                      <div className="flex justify-between items-center text-center space-x-4">
+                        <h1>0:00</h1>
+                        <Progress value={progress} />
+                        <div>
+                          {!isNaN(duration) && audioRef.current?.currentTime
+                            ? `${Math.floor(
+                                (duration - audioRef.current.currentTime) / 60
+                              )}:${
+                                Math.floor(
+                                  (duration - audioRef.current.currentTime) % 60
+                                ) < 10
+                                  ? `0${Math.floor(
+                                      (duration -
+                                        audioRef.current.currentTime) %
+                                        60
+                                    )}`
+                                  : Math.floor(
+                                      (duration -
+                                        audioRef.current.currentTime) %
+                                        60
+                                    )
+                              }`
+                            : "0:00"}
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -433,16 +495,37 @@ export default function ListenPage() {
                           setDuration(e.target.duration);
                         }
                       }}
+                      // onPlay={() => {
+                      //   // @ts-ignore
+                      //   setDuration(audioRef.current.duration);
+                      //   // calculate the progress every second considering the duration
+                      //   const interval = setInterval(() => {
+                      //     setProgress(
+                      //       // @ts-ignore
+                      //       (audioRef.current.currentTime / duration) * 100
+                      //     );
+                      //   }, 500);
+                      //   return () => clearInterval(interval);
+                      // }}
                       onPlay={() => {
-                        // @ts-ignore
+                        // Set the initial duration when the song starts playing
                         setDuration(audioRef.current.duration);
-                        // calculate the progress every second considering the duration
+
+                        // Calculate the progress every second considering the duration
                         const interval = setInterval(() => {
-                          setProgress(
-                            // @ts-ignore
-                            (audioRef.current.currentTime / duration) * 100
-                          );
+                          // Check if the song is still playing
+                          if (!audioRef.current.paused) {
+                            // Round the progress value to 2 decimal places
+                            const calculatedProgress = parseFloat(
+                              (
+                                (audioRef.current.currentTime / duration) *
+                                100
+                              ).toFixed(2)
+                            );
+                            setProgress(calculatedProgress);
+                          }
                         }, 500);
+
                         return () => clearInterval(interval);
                       }}
                       className="h-12 w-full hidden"
