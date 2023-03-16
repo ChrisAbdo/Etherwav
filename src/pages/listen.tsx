@@ -1,6 +1,11 @@
 import React from "react";
+import Web3 from "web3";
+import Radio from "../../backend/build/contracts/Radio.json";
+import NFT from "../../backend/build/contracts/NFT.json";
 import Marquee from "react-fast-marquee";
 import { motion, AnimatePresence } from "framer-motion";
+import axios from "axios";
+import Image from "next/image";
 import {
   Bell,
   ChevronRight,
@@ -13,6 +18,7 @@ import {
   Menu,
   MenuIcon,
   Moon,
+  Pause,
   Play,
   Search,
   SearchIcon,
@@ -70,29 +76,105 @@ import Link from "next/link";
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
 }
-const user = {
-  name: "Chelsea Hagon",
-  email: "chelsea.hagon@example.com",
-  imageUrl:
-    "https://images.unsplash.com/photo-1550525811-e5869dd03032?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80",
-};
-const navigation = [
-  { name: "Dashboard", href: "#", current: true },
-  { name: "Calendar", href: "#", current: false },
-  { name: "Teams", href: "#", current: false },
-  { name: "Directory", href: "#", current: false },
-];
-const userNavigation = [
-  { name: "Your Profile", href: "#" },
-  { name: "Settings", href: "#" },
-  { name: "Sign out", href: "#" },
-];
+const transition = { duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] };
+
 export default function ListenPage() {
   const [modalMounted, setModalMounted] = React.useState(false);
+  const [nfts, setNfts] = React.useState([]);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [shouldPlay, setShouldPlay] = React.useState(false);
+  const [heatCount, setHeatCount] = React.useState(0);
+  const [topThreeNfts, setTopThreeNfts] = React.useState([]);
+  const [direction, setDirection] = React.useState("right");
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [ascending, setAscending] = React.useState(false);
+  const [songsLoaded, setSongsLoaded] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+  const [position, setPosition] = React.useState("bottom");
+  const [progress, setProgress] = React.useState(0);
+  const [duration, setDuration] = React.useState(0);
+  const [open, setOpen] = React.useState(false);
+  const audioRef = React.useRef(null);
+  const [mounted, setMounted] = React.useState(false);
+
+  React.useEffect(() => {
+    loadSongs();
+  }, []);
 
   React.useEffect(() => {
     setModalMounted(true);
   }, []);
+
+  async function loadSongs() {
+    console.log("Loading songs...");
+    // @ts-ignore
+    const web3 = new Web3(window.ethereum);
+
+    const networkId = await web3.eth.net.getId();
+
+    // Get all listed NFTs
+    const radioContract = new web3.eth.Contract(
+      // @ts-ignore
+      Radio.abi,
+      // @ts-ignore
+      Radio.networks[networkId].address
+    );
+    const listings = await radioContract.methods.getListedNfts().call();
+    // Iterate over the listed NFTs and retrieve their metadata
+    const nfts = await Promise.all(
+      listings.map(async (i: any) => {
+        try {
+          const NFTContract = new web3.eth.Contract(
+            // @ts-ignore
+            NFT.abi,
+            // @ts-ignore
+            NFT.networks[networkId].address
+          );
+          const tokenURI = await NFTContract.methods.tokenURI(i.tokenId).call();
+          const meta = await axios.get(tokenURI);
+          const nft = {
+            tokenId: i.tokenId,
+            seller: i.seller,
+            owner: i.buyer,
+            image: meta.data.image,
+            title: meta.data.title,
+            coverImage: meta.data.coverImage,
+            heatCount: i.heatCount,
+            genre: meta.data.genre,
+          };
+          return nft;
+        } catch (err) {
+          console.log(err);
+          return null;
+        }
+      })
+    );
+    // setNfts(nfts.filter((nft) => nft !== null));
+
+    // set nfts in order of heatCount
+    const sortedNfts = nfts
+      .filter((nft) => nft !== null)
+      .sort((a, b) => b.heatCount - a.heatCount);
+    const topThreeNfts = sortedNfts.slice(0, 5);
+    // @ts-ignore
+    setTopThreeNfts(topThreeNfts);
+    // @ts-ignore
+    setNfts(sortedNfts);
+
+    setSongsLoaded(true);
+  }
+
+  function handleNext() {
+    setDirection("right");
+    setCurrentIndex((currentIndex + 1) % nfts.length);
+    setIsPlaying(true);
+  }
+  function handlePrevious() {
+    setDirection("left");
+    setCurrentIndex(currentIndex === 0 ? nfts.length - 1 : currentIndex - 1);
+    setIsPlaying(true);
+  }
   return (
     <div className="h-screen">
       <div className="flex h-full">
@@ -128,7 +210,10 @@ export default function ListenPage() {
                     </h1>
                     <ScrollArea className="h-96">
                       {Array.from({ length: 20 }).map((_, i) => (
-                        <div className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400">
+                        <div
+                          key={i}
+                          className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+                        >
                           <div className="flex-shrink-0">
                             <img
                               className="h-10 w-10 rounded-full"
@@ -224,7 +309,7 @@ export default function ListenPage() {
                 />
               </div>
               <div>
-                <Sheet>
+                {/* <Sheet>
                   <SheetTrigger>
                     <Button variant="ghost">
                       <Menu
@@ -243,7 +328,7 @@ export default function ListenPage() {
                       </SheetDescription>
                     </SheetHeader>
                   </SheetContent>
-                </Sheet>
+                </Sheet> */}
               </div>
             </div>
           </div>
@@ -272,59 +357,143 @@ export default function ListenPage() {
           <div className="relative z-0 flex flex-1 overflow-hidden">
             <main className=" z-0 flex-1 overflow-y-auto focus:outline-none flex items-center justify-center relative">
               {/* Main area */}
-              <div className="flex flex-col items-center">
-                <div>
-                  <img
-                    className="h-96 w-96 rounded-md"
-                    src="https://imgs.search.brave.com/oSBbiSRQWESLXT7dvYa2k3wdxoNOTNpg5MWjni2rHhQ/rs:fit:1200:1200:1/g:ce/aHR0cDovL3RoZXdv/d3N0eWxlLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNS8w/MS9uYXR1cmUtaW1h/Z2VzLmpwZw"
-                    alt=""
-                  />
-                  <HoverCard>
-                    <HoverCardTrigger>
-                      <h1 className="text-2xl font-medium text-gray-900 mt-4">
-                        Title
-                      </h1>
-                      <p className="text-sm text-gray-500 mt-1">Artist</p>
-                    </HoverCardTrigger>
-                    <HoverCardContent>
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-semibold">@nextjs</h4>
-                        <p className="text-sm">
-                          The React Framework – created and maintained by
-                          @vercel.
-                        </p>
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
-                  <div className="mt-4">
-                    <Progress value={33} />
+              {songsLoaded ? (
+                <div key={currentIndex} className="flex flex-col items-center">
+                  <div className="w-96">
+                    {/* <img
+                      className="h-96 w-96 rounded-md"
+                      src="https://imgs.search.brave.com/oSBbiSRQWESLXT7dvYa2k3wdxoNOTNpg5MWjni2rHhQ/rs:fit:1200:1200:1/g:ce/aHR0cDovL3RoZXdv/d3N0eWxlLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNS8w/MS9uYXR1cmUtaW1h/Z2VzLmpwZw"
+                      alt=""
+                    /> */}
+                    <figure>
+                      <motion.div
+                        // @ts-ignore
+                        key={nfts[currentIndex].tokenId}
+                        initial={
+                          direction === "right" ? { x: -100 } : { x: 100 }
+                        }
+                        animate={{ x: 0 }}
+                        exit={direction === "right" ? { x: 100 } : { x: -100 }}
+                        transition={transition}
+                      >
+                        <Image
+                          // @ts-ignore
+                          src={nfts[currentIndex].coverImage}
+                          width={400}
+                          height={400}
+                          alt="cover"
+                          className="rounded-none min-w-96 min-h-96 max-w-96 max-h-96"
+                          priority
+                        />
+                      </motion.div>
+                    </figure>
+                    <HoverCard>
+                      <HoverCardTrigger>
+                        <h1 className="text-2xl font-medium text-gray-900 mt-4">
+                          {/* @ts-ignore */}
+                          {nfts[currentIndex].title}
+                        </h1>
+                        <p className="text-sm text-gray-500 mt-1">Artist</p>
+                      </HoverCardTrigger>
+                      <HoverCardContent>
+                        <div className="space-y-2">
+                          <h4 className="text-sm font-semibold">@nextjs</h4>
+                          <p className="text-sm">
+                            The React Framework – created and maintained by
+                            @vercel.
+                          </p>
+                        </div>
+                      </HoverCardContent>
+                    </HoverCard>
+                    <div className="mt-4">
+                      <Progress value={33} />
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between w-96 mt-4">
+                    <Button
+                      onClick={handlePrevious}
+                      disabled={currentIndex === 0}
+                      variant="default"
+                    >
+                      <ChevronsLeft />
+                    </Button>
+
+                    <audio
+                      // @ts-ignore
+                      src={nfts[currentIndex].image}
+                      ref={audioRef}
+                      onEnded={(e) => {
+                        if (currentIndex < nfts.length - 1) {
+                          setCurrentIndex(currentIndex + 1);
+                          // set the progress to 0
+                          setProgress(0);
+                          // set the duration to the duration of the next song
+                          // @ts-ignore
+                          setDuration(e.target.duration);
+                        }
+                      }}
+                      onPlay={() => {
+                        // @ts-ignore
+                        setDuration(audioRef.current.duration);
+                        // calculate the progress every second considering the duration
+                        const interval = setInterval(() => {
+                          setProgress(
+                            // @ts-ignore
+                            (audioRef.current.currentTime / duration) * 100
+                          );
+                        }, 500);
+                        return () => clearInterval(interval);
+                      }}
+                      className="h-12 w-full hidden"
+                      controls
+                      // autoplay after the first song
+                      autoPlay={currentIndex !== 0}
+                    />
+
+                    <Button
+                      onClick={() => {
+                        if (isPlaying) {
+                          // @ts-ignore
+                          audioRef.current.pause();
+                          setIsPlaying(false);
+                        } else {
+                          // @ts-ignore
+                          audioRef.current.play();
+                          // @ts-ignore
+                          audioRef.current.pause();
+                          // @ts-ignore
+                          audioRef.current.play();
+                          setIsPlaying(true);
+                        }
+                      }}
+                      variant="default"
+                    >
+                      {isPlaying ? <Pause /> : <Play />}
+                    </Button>
+
+                    <Button
+                      onClick={handleNext}
+                      disabled={currentIndex === nfts.length - 1}
+                      variant="default"
+                    >
+                      <ChevronsRight />
+                    </Button>
+                  </div>
+
+                  <div className="flex w-full mt-4">
+                    <Button className="w-full" variant="default">
+                      Give Heat <Flame />
+                    </Button>
+                  </div>
+
+                  <div className="flex w-full mt-4">
+                    <Button className="w-full" variant="outline">
+                      More Info
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex justify-between w-96 mt-4">
-                  <Button variant="default">
-                    <ChevronsLeft />
-                  </Button>
-                  <Button variant="default">
-                    <Play />
-                  </Button>
-                  <Button variant="default">
-                    <ChevronsRight />
-                  </Button>
-                </div>
-
-                <div className="flex w-full mt-4">
-                  <Button className="w-full" variant="default">
-                    Give Heat <Flame />
-                  </Button>
-                </div>
-
-                <div className="flex w-full mt-4">
-                  <Button className="w-full" variant="outline">
-                    More Info
-                  </Button>
-                </div>
-              </div>
+              ) : null}
 
               {/* Footer */}
               {/* <div className="absolute bottom-0 left-0 right-0 bg-gray-100 py-6 text-center">

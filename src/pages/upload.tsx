@@ -1,3 +1,7 @@
+import Web3 from "web3";
+import Radio from "backend/build/contracts/Radio.json";
+import NFT from "backend/build/contracts/NFT.json";
+
 import { motion, AnimatePresence } from "framer-motion";
 import {
   useNetworkMismatch,
@@ -34,15 +38,20 @@ const products = [
   },
   // More products...
 ];
-const deliveryMethods = [
-  {
-    id: 1,
-    title: "Standard",
-    turnaround: "4–10 business days",
-    price: "$5.00",
+
+const ipfsClient = require("ipfs-http-client");
+const projectId = "2FdliMGfWHQCzVYTtFlGQsknZvb";
+const projectSecret = "2274a79139ff6fdb2f016d12f713dca1";
+const auth =
+  "Basic " + Buffer.from(projectId + ":" + projectSecret).toString("base64");
+const client = ipfsClient.create({
+  host: "ipfs.infura.io",
+  port: 5001,
+  protocol: "https",
+  headers: {
+    authorization: auth,
   },
-  { id: 2, title: "Express", turnaround: "2–5 business days", price: "$16.00" },
-];
+});
 
 const TextAnimation = ({ address = "" }) => {
   const letterVariants = {
@@ -76,11 +85,19 @@ const TextAnimation = ({ address = "" }) => {
 
 export default function Example() {
   const address = useAddress();
-  const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState(
-    deliveryMethods[0]
-  );
+
+  const [formInput, updateFormInput] = useState({
+    title: "",
+    coverImage: "",
+    genre: "",
+  });
+
   const [file, setFile] = useState(null);
   const [fileUrl, setFileUrl] = useState(null);
+
+  const [coverImage, setCoverImage] = useState(null);
+
+  const [genre, setGenre] = useState("");
 
   const [songTitle, setSongTitle] = useState("");
 
@@ -94,15 +111,120 @@ export default function Example() {
     e.preventDefault();
   }
 
-  function handleFileInputChange(e: any) {
-    setFile(e.target.files[0]);
-    // @ts-ignore
-    setFileUrl(URL.createObjectURL(e.target.files[0]));
+  function handleDrop2(e: any) {
+    e.preventDefault();
   }
 
-  function handleFormSubmit(e: any) {
+  function handleDragOver2(e: any) {
     e.preventDefault();
-    // do something with the file, such as upload it to a server
+  }
+
+  function handleFileInputChange(e: any) {
+    // @ts-ignore
+    setFile(URL.createObjectURL(e.target.files[0]));
+  }
+
+  async function onChange(e: any) {
+    // upload image to IPFS
+
+    const file = e.target.files[0];
+    try {
+      const added = await client.add(file, {
+        progress: (prog: any) => console.log(`received: ${prog}`),
+      });
+      const url = `https://ipfs.io/ipfs/${added.path}`;
+      console.log(url);
+
+      // @ts-ignore
+      setFileUrl(url);
+    } catch (error) {
+      console.log("Error uploading file: ", error);
+    }
+  }
+
+  async function createCoverImage(e: any) {
+    // upload image to IPFS
+    const file = e.target.files[0];
+    try {
+      const added = await client.add(file, {
+        progress: (prog: any) => console.log(`received: ${prog}`),
+      });
+      const url = `https://ipfs.io/ipfs/${added.path}`;
+      console.log(url);
+      // @ts-ignore
+      setCoverImage(url);
+      updateFormInput({
+        ...formInput,
+        coverImage: url,
+      }); // update form input with cover image URL
+    } catch (error) {
+      console.log("Error uploading file: ", error);
+    }
+  }
+
+  async function uploadToIPFS() {
+    const { title, coverImage, genre } = formInput;
+    if (!title || !coverImage || !genre || !fileUrl) {
+      return;
+    } else {
+      // first, upload metadata to IPFS
+      const data = JSON.stringify({
+        title,
+        coverImage,
+        image: fileUrl,
+        genre,
+      });
+      try {
+        const added = await client.add(data);
+        const url = `https://ipfs.io/ipfs/${added.path}`;
+        // after metadata is uploaded to IPFS, return the URL to use it in the transaction
+
+        return url;
+      } catch (error) {
+        console.log("Error uploading file: ", error);
+      }
+    }
+  }
+
+  async function listNFTForSale() {
+    try {
+      // @ts-ignore
+      const web3 = new Web3(window.ethereum);
+      const url = await uploadToIPFS();
+
+      const networkId = await web3.eth.net.getId();
+
+      // Mint the NFT
+      // @ts-ignore
+      const NFTContractAddress = NFT.networks[networkId].address;
+      // @ts-ignore
+      const NFTContract = new web3.eth.Contract(NFT.abi, NFTContractAddress);
+      const accounts = await web3.eth.getAccounts();
+
+      const radioContract = new web3.eth.Contract(
+        // @ts-ignore
+        Radio.abi,
+        // @ts-ignore
+        Radio.networks[networkId].address
+      );
+
+      NFTContract.methods
+        .mint(url)
+        .send({ from: accounts[0] })
+        .on("receipt", function (receipt: any) {
+          console.log("minted");
+          // List the NFT
+          const tokenId = receipt.events.NFTMinted.returnValues[0];
+          radioContract.methods
+            .listNft(NFTContractAddress, tokenId)
+            .send({ from: accounts[0] })
+            .on("receipt", function () {
+              console.log("listed");
+            });
+        });
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
@@ -112,7 +234,7 @@ export default function Example() {
         <div className="mx-auto max-w-2xl px-4 pt-16 pb-24 sm:px-6 lg:max-w-7xl lg:px-8">
           <h2 className="sr-only">Checkout</h2>
 
-          <form className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
             <div>
               <div>
                 <h2 className="text-lg font-medium text-gray-900">
@@ -127,24 +249,49 @@ export default function Example() {
                     Choose song
                   </label>
                   <div className="mt-1">
-                    {/* <input
-                    type="file"
-                    id="email-address"
-                    name="email-address"
-                    autoComplete="email"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  /> */}
-                    {/* <input
-                    type="file"
-                    className="block w-full text-sm text-gray-500 file:py-1 file:px-6 file:rounded file:border-1 file:border-gray-400"
-                  /> */}
+                    <div className="rounded-md border">
+                      <div className="mb-4 p-4">
+                        <input
+                          id="fileInput"
+                          type="file"
+                          accept="audio/*"
+                          // onChange={handleFileInputChange}
+                          onChange={onChange}
+                          className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
+                      </div>
+                      <div
+                        className=" p-4 text-center"
+                        onDrop={handleDrop2}
+                        onDragOver={handleDragOver2}
+                      >
+                        <p className="text-gray-600">
+                          Drag and drop a file here or choose a file.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label
+                    htmlFor="email-address"
+                    className="block text-sm font-medium text-gray-700"
+                  >
+                    Choose cover image
+                  </label>
+                  <div className="mt-1">
                     <div className="rounded-md border">
                       <div className="mb-4 p-4">
                         <input
                           id="fileInput"
                           type="file"
                           accept="image/*"
-                          onChange={handleFileInputChange}
+                          // onChange={handleFileInputChange}
+                          onChange={(e) => {
+                            createCoverImage(e);
+                            handleFileInputChange(e);
+                          }}
                           className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         />
                       </div>
@@ -182,6 +329,8 @@ export default function Example() {
                     type="text"
                     onChange={(e) => {
                       setSongTitle(e.target.value);
+                      // @ts-ignore
+                      updateFormInput({ ...formInput, title: e.target.value });
                     }}
                     id="title"
                     placeholder="Song title..."
@@ -191,7 +340,13 @@ export default function Example() {
 
                 <div className="mt-4">
                   <Label htmlFor="email">Genre</Label>
-                  <Select>
+                  <Select
+                    onValueChange={(e) => {
+                      setGenre(e);
+                      // @ts-ignore
+                      updateFormInput({ ...formInput, genre: e });
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select genre" />
                     </SelectTrigger>
@@ -217,10 +372,10 @@ export default function Example() {
                   {products.map((product) => (
                     <li key={product.id} className="flex py-6 px-4 sm:px-6">
                       <div className="flex-shrink-0">
-                        {fileUrl ? (
+                        {file ? (
                           <img
                             // @ts-ignore
-                            src={fileUrl}
+                            src={file}
                             alt={product.imageAlt}
                             className="w-20 rounded-md"
                           />
@@ -255,9 +410,15 @@ export default function Example() {
                               )}
                             </AnimatePresence>
                             {/* <p className="mt-1 text-sm text-gray-500">GENRE</p> */}
-                            <div className="mt-1 bg-gray-200 w-1/3 h-6 animate-pulse rounded-md">
-                              &nbsp;Genre
-                            </div>
+                            <span>
+                              {genre ? (
+                                <span className="text-lg">{genre}</span>
+                              ) : (
+                                <div className="mt-1 bg-gray-200 w-1/3 h-6 animate-pulse rounded-md">
+                                  &nbsp;Genre
+                                </div>
+                              )}
+                            </span>
                           </div>
                         </div>
                       </div>
@@ -266,13 +427,18 @@ export default function Example() {
                 </ul>
 
                 <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
-                  <Button type="submit" variant="default" className="w-full">
+                  <Button
+                    onClick={listNFTForSale}
+                    type="submit"
+                    variant="default"
+                    className="w-full"
+                  >
                     Upload song!
                   </Button>
                 </div>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </>
