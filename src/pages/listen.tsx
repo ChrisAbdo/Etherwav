@@ -1,4 +1,6 @@
+// @ts-nocheck
 import React from "react";
+import MusicLoader from "@/components/music-loader";
 import Web3 from "web3";
 import Radio from "../../backend/build/contracts/Radio.json";
 import NFT from "../../backend/build/contracts/NFT.json";
@@ -56,6 +58,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -74,6 +86,10 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
 import Link from "next/link";
+import LeaderboardLoader from "@/components/leaderboard-loader";
+import QueueLoader from "@/components/queue-loader";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -207,18 +223,31 @@ export default function ListenPage() {
   return (
     <div className="h-screen">
       <Navbar />
+      <div className="border-b border-gray-200 bg-gray-100 p-4">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <Info className="h-5 w-5 " aria-hidden="true" />
+          </div>
+          <div className="ml-3 flex-1 md:flex md:justify-between">
+            <p className="text-sm ">
+              Want to upload your own songs? Check out the upload page!
+            </p>
+            <p className="mt-3 text-sm md:mt-0 md:ml-6">
+              <Link href="/upload" className="whitespace-nowrap font-medium ">
+                Upload your songs here!
+                <span aria-hidden="true"> &rarr;</span>
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
       <div className="flex h-full">
         {/* Static sidebar for desktop */}
         <div className="hidden lg:flex lg:flex-shrink-0">
           <div className="flex w-64 flex-col">
             {/* Sidebar component, swap this element with another sidebar if you like */}
             <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-gray-100">
-              <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
-                <div className="flex flex-shrink-0 items-center px-4 border-b border-gray-200">
-                  <Link href="/" className="text-2xl">
-                    Etherwav
-                  </Link>
-                </div>
+              <div className="flex flex-1 flex-col overflow-y-auto pb-4">
                 <nav className="mt-5 flex-1" aria-label="Sidebar">
                   <div className="space-y-1 px-2">
                     {/* {navigation.map((item) => (
@@ -239,8 +268,6 @@ export default function ListenPage() {
                       Queue
                     </h1>
                     <ScrollArea className="h-96">
-                      {/* {Array.from({ length: 20 }).map((_, i) => ( */}
-
                       {nfts.length > 0 ? (
                         nfts.map((nft, i) => (
                           <div
@@ -272,40 +299,7 @@ export default function ListenPage() {
                           </div>
                         ))
                       ) : (
-                        // array of nfts
-                        <div>
-                          {Array.from({ length: 20 }).map((_, i) => (
-                            <div
-                              key={i}
-                              className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
-                            >
-                              <div className="flex-shrink-0">
-                                {/* <img
-                                  className="h-10 w-10 rounded-md"
-                                  src={nft.coverImage}
-                                  alt=""
-                                /> */}
-                                <div className="bg-gray-200 w-10 h-10 animate-pulse rounded-md"></div>
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <a href="#" className="focus:outline-none">
-                                  <span
-                                    className="absolute inset-0"
-                                    aria-hidden="true"
-                                  />
-                                  <div className="text-sm font-medium text-gray-900">
-                                    <div className="mt-1 bg-gray-200 w-1/3 h-4 animate-pulse rounded-md"></div>
-                                  </div>
-                                  <div className="truncate text-sm text-gray-500">
-                                    {/* {nft.seller.slice(0, 5)}...
-                                    {nft.seller.slice(-4)} */}
-                                    <div className="mt-1 bg-gray-200 w-1/3 h-4 animate-pulse rounded-md"></div>
-                                  </div>
-                                </a>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
+                        <QueueLoader />
                       )}
                     </ScrollArea>
 
@@ -317,28 +311,35 @@ export default function ListenPage() {
                         <h1 className="text-gray-500 text-lg uppercase tracking-wider font-medium">
                           Filter
                         </h1>
-                        <div className="space-y-2">
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sort by genre" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="light">Light</SelectItem>
-                              <SelectItem value="dark">Dark</SelectItem>
-                              <SelectItem value="system">System</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Select>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Sort by descending" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="light">Light</SelectItem>
-                              <SelectItem value="dark">Dark</SelectItem>
-                              <SelectItem value="system">System</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        {songsLoaded ? (
+                          <div className="space-y-2">
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sort by genre" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="light">Light</SelectItem>
+                                <SelectItem value="dark">Dark</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                              </SelectContent>
+                            </Select>
+                            <Select>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sort by descending" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="light">Light</SelectItem>
+                                <SelectItem value="dark">Dark</SelectItem>
+                                <SelectItem value="system">System</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : (
+                          <div className="mt-4">
+                            <div className="mt-4 bg-gray-200 w-full h-8 animate-pulse rounded-md"></div>
+                            <div className="mt-2 bg-gray-200 w-full h-8 animate-pulse rounded-md"></div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -368,6 +369,7 @@ export default function ListenPage() {
             </div>
           </div>
         </div>
+
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <div className="lg:hidden">
             <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">
@@ -402,39 +404,14 @@ export default function ListenPage() {
               </div>
             </div>
           </div>
-          <div className="border-b border-gray-200 bg-gray-100 p-4">
-            <div className="flex">
-              <div className="flex-shrink-0">
-                <Info className="h-5 w-5 " aria-hidden="true" />
-              </div>
-              <div className="ml-3 flex-1 md:flex md:justify-between">
-                <p className="text-sm ">
-                  Want to upload your own songs? Check out the upload page!
-                </p>
-                <p className="mt-3 text-sm md:mt-0 md:ml-6">
-                  <Link
-                    href="/upload"
-                    className="whitespace-nowrap font-medium "
-                  >
-                    Upload your songs here!
-                    <span aria-hidden="true"> &rarr;</span>
-                  </Link>
-                </p>
-              </div>
-            </div>
-          </div>
 
           <div className="relative z-0 flex flex-1 overflow-hidden">
             <main className=" z-0 flex-1 overflow-y-auto focus:outline-none flex items-center justify-center relative">
               {/* Main area */}
+
               {songsLoaded ? (
                 <div key={currentIndex} className="flex flex-col items-center">
                   <div className="w-96">
-                    {/* <img
-                      className="h-96 w-96 rounded-md"
-                      src="https://imgs.search.brave.com/oSBbiSRQWESLXT7dvYa2k3wdxoNOTNpg5MWjni2rHhQ/rs:fit:1200:1200:1/g:ce/aHR0cDovL3RoZXdv/d3N0eWxlLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNS8w/MS9uYXR1cmUtaW1h/Z2VzLmpwZw"
-                      alt=""
-                    /> */}
                     <figure>
                       <motion.div
                         // @ts-ignore
@@ -620,9 +597,50 @@ export default function ListenPage() {
                   </div>
 
                   <div className="flex w-full mt-4">
-                    <Button className="w-full" variant="default">
+                    {/* <Button className="w-full" variant="default">
                       Give Heat <Flame />
-                    </Button>
+                    </Button> */}
+                    <Dialog>
+                      <DialogTrigger>
+                        <Button className="w-96" variant="default">
+                          Give Heat <Flame />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Edit profile</DialogTitle>
+                          <DialogDescription>
+                            Make changes to your profile here. Click save when
+                            you are done.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="name" className="text-right">
+                              Name
+                            </Label>
+                            <Input
+                              id="name"
+                              value="Pedro Duarte"
+                              className="col-span-3"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="username" className="text-right">
+                              Username
+                            </Label>
+                            <Input
+                              id="username"
+                              value="@peduarte"
+                              className="col-span-3"
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button type="submit">Save changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   <div className="flex w-full mt-4">
@@ -631,30 +649,19 @@ export default function ListenPage() {
                     </Button>
                   </div>
                 </div>
-              ) : null}
-
-              {/* Footer */}
-              {/* <div className="absolute bottom-0 left-0 right-0 bg-gray-100 py-6 text-center">
-                <span className="text-gray-600">Footer content goes here</span>
-              </div> */}
+              ) : (
+                <MusicLoader />
+              )}
             </main>
 
             <aside className="relative hidden w-96 flex-shrink-0 overflow-y-auto border-l border-gray-200 bg-gray-100 xl:flex xl:flex-col">
               {/* Secondary column (hidden on smaller screens) */}
               <div className="bg-white ">
                 <div>
-                  <div>
-                    <Marquee gradient={false} className="overflow-hidden">
-                      <h2 className="text-4xl font-bold tracking-tight text-gray-900">
-                        {/* cheeky message about the heat leaderboard */}
-                        🔥 Hot Tracks! Here are the Top 5 Songs on Fire Right
-                        Now! 🎶
-                      </h2>
-                    </Marquee>
-                  </div>
+                  <div></div>
                 </div>
               </div>
-              <h1 className="text-gray-500 text-lg uppercase tracking-wider font-medium">
+              <h1 className="mt-6 ml-3 text-gray-500 text-lg uppercase tracking-wider font-medium">
                 Heat Leaderboard
               </h1>
               <ul role="list" className="p-4 space-y-4">
@@ -689,36 +696,7 @@ export default function ListenPage() {
                     </motion.div>
                   ))
                 ) : (
-                  <div>
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, translateX: -50 }}
-                        animate={{ opacity: 1, translateX: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
-                      >
-                        <div className="flex items-center overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                          {/* Image */}
-                          {/* <img
-                          className="w-16 h-16 mr-4 rounded-md"
-                          src={nft.coverImage}
-                          alt="Image description"
-                        /> */}
-                          <div className="bg-gray-200 w-20 h-20 animate-pulse rounded-md"></div>
-
-                          {/* Content */}
-                          <div className="ml-1">
-                            <dt className="truncate text-sm font-medium text-gray-500">
-                              <div className="mt-1 bg-gray-200 w-36 h-8 animate-pulse rounded-md"></div>
-                            </dt>
-                            <dd className="mt-1 flex text-3xl font-semibold tracking-tight text-gray-900">
-                              <div className="bg-gray-200 w-24 h-8 animate-pulse rounded-md"></div>
-                            </dd>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
+                  <LeaderboardLoader />
                 )}
               </ul>
             </aside>
