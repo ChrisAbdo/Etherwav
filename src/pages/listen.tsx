@@ -223,7 +223,7 @@ export default function ListenPage() {
   return (
     <div className="h-screen">
       <Navbar />
-      <div className="border-b border-gray-200 bg-gray-100 p-4">
+      <div className="border-b border-gray-200 dark:border-[#333] bg-gray-100 dark:bg-neutral-900 p-4">
         <div className="flex">
           <div className="flex-shrink-0">
             <Info className="h-5 w-5 " aria-hidden="true" />
@@ -246,25 +246,11 @@ export default function ListenPage() {
         <div className="hidden lg:flex lg:flex-shrink-0">
           <div className="flex w-64 flex-col">
             {/* Sidebar component, swap this element with another sidebar if you like */}
-            <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-gray-100">
+            <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 dark:border-[#333] bg-gray-100 dark:bg-black">
               <div className="flex flex-1 flex-col overflow-y-auto pb-4">
                 <nav className="mt-5 flex-1" aria-label="Sidebar">
                   <div className="space-y-1 px-2">
-                    {/* {navigation.map((item) => (
-                      <a
-                        key={item.name}
-                        href={item.href}
-                        className={classNames(
-                          item.current
-                            ? "bg-gray-200 text-gray-900"
-                            : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                          "group flex items-center rounded-md px-2 py-2 text-sm font-medium"
-                        )}
-                      >
-                        {item.name}
-                      </a>
-                    ))} */}
-                    <h1 className="text-gray-500 text-lg uppercase tracking-wider font-medium">
+                    <h1 className="text-gray-500 dark:text-white text-lg uppercase tracking-wider font-medium">
                       Queue
                     </h1>
                     <ScrollArea className="h-96">
@@ -272,29 +258,31 @@ export default function ListenPage() {
                         nfts.map((nft, i) => (
                           <div
                             key={i}
-                            className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+                            className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 dark:border-[#333] dark:bg-[#111] px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
                           >
                             <div className="flex-shrink-0">
-                              <img
+                              <Image
                                 className="h-10 w-10 rounded-md"
                                 src={nft.coverImage}
                                 alt=""
+                                width={40}
+                                height={40}
                               />
                             </div>
                             <div className="min-w-0 flex-1">
-                              <a href="#" className="focus:outline-none">
+                              <div className="focus:outline-none">
                                 <span
                                   className="absolute inset-0"
                                   aria-hidden="true"
                                 />
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white">
                                   {nft.title}
                                 </p>
-                                <p className="truncate text-sm text-gray-500">
+                                <p className="truncate text-sm text-gray-500 dark:text-zinc-500">
                                   {nft.seller.slice(0, 5)}...
                                   {nft.seller.slice(-4)}
                                 </p>
-                              </a>
+                              </div>
                             </div>
                           </div>
                         ))
@@ -308,7 +296,7 @@ export default function ListenPage() {
                         <div className="mb-4">
                           <Separator />
                         </div>
-                        <h1 className="text-gray-500 text-lg uppercase tracking-wider font-medium">
+                        <h1 className="text-gray-500 dark:text-white text-lg uppercase tracking-wider font-medium">
                           Filter
                         </h1>
                         {songsLoaded ? (
@@ -336,35 +324,14 @@ export default function ListenPage() {
                           </div>
                         ) : (
                           <div className="mt-4">
-                            <div className="mt-4 bg-gray-200 w-full h-8 animate-pulse rounded-md"></div>
-                            <div className="mt-2 bg-gray-200 w-full h-8 animate-pulse rounded-md"></div>
+                            <div className="mt-4 bg-gray-200 dark:bg-[#333] w-full h-8 animate-pulse rounded-md" />
+                            <div className="mt-2 bg-gray-200 dark:bg-[#333] w-full h-8 animate-pulse rounded-md" />
                           </div>
                         )}
                       </div>
                     </div>
                   </div>
                 </nav>
-              </div>
-              <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
-                <a href="#" className="group block w-full flex-shrink-0">
-                  <div className="flex items-center">
-                    <div>
-                      <img
-                        className="inline-block h-9 w-9 rounded-full"
-                        src="https://images.unsplash.com/photo-1517365830460-955ce3ccd263?ixlib=rb-=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=8&w=256&h=256&q=80"
-                        alt=""
-                      />
-                    </div>
-                    <div className="ml-3">
-                      <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
-                        Whitney Francis
-                      </p>
-                      <p className="text-xs font-medium text-gray-500 group-hover:text-gray-700">
-                        View profile
-                      </p>
-                    </div>
-                  </div>
-                </a>
               </div>
             </div>
           </div>
@@ -413,6 +380,15 @@ export default function ListenPage() {
                 <div key={currentIndex} className="flex flex-col items-center">
                   <div className="w-96">
                     <figure>
+                      <div className="flex justify-between mb-2">
+                        <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-[#333] px-2.5 py-0.5 text-sm font-medium text-gray-800 dark:text-white">
+                          {nfts[currentIndex].heatCount} Heat{" "}
+                          <Flame className="ml-1" />
+                        </span>
+                        <span className="inline-flex items-center rounded-md bg-gray-100 dark:bg-[#333] px-2.5 py-0.5 text-sm font-medium text-gray-800 dark:text-white">
+                          {nfts[currentIndex].genre}
+                        </span>
+                      </div>
                       <motion.div
                         // @ts-ignore
                         key={nfts[currentIndex].tokenId}
@@ -436,11 +412,11 @@ export default function ListenPage() {
                     </figure>
                     <HoverCard>
                       <HoverCardTrigger>
-                        <h1 className="text-2xl font-medium text-gray-900 mt-4">
+                        <h1 className="text-2xl font-medium text-gray-900 dark:text-white mt-4">
                           {/* @ts-ignore */}
                           {nfts[currentIndex].title}
                         </h1>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <p className="text-sm text-gray-500 dark:text-zinc-500 mt-1">
                           {/* @ts-ignore */}
                           {nfts[currentIndex].seller}
                         </p>
@@ -597,10 +573,94 @@ export default function ListenPage() {
                   </div>
 
                   <div className="flex w-full mt-4">
-                    {/* <Button className="w-full" variant="default">
-                      Give Heat <Flame />
-                    </Button> */}
-                    <Dialog>
+                    <Sheet>
+                      <SheetTrigger>
+                        <Button className="w-96" variant="destructive">
+                          Give Heat <Flame />
+                        </Button>
+                      </SheetTrigger>
+                      <SheetContent>
+                        <SheetHeader>
+                          <SheetTitle>
+                            Give Heat to {nfts[currentIndex].title}
+                          </SheetTitle>
+                          <SheetDescription>
+                            <div>
+                              <div className="pb-1 sm:pb-6">
+                                <div>
+                                  <div className="relative h-40 sm:h-56">
+                                    <Image
+                                      className="absolute h-full w-full object-cover"
+                                      src={nfts[currentIndex].coverImage}
+                                      alt=""
+                                      width={500}
+                                      height={500}
+                                    />
+                                  </div>
+                                  <div className="mt-6 px-4 sm:mt-8 sm:flex sm:items-end sm:px-6">
+                                    <div className="sm:flex-1">
+                                      <div>
+                                        <div className="flex items-center">
+                                          <h3 className="text-xl font-bold text-gray-900 dark:text-white sm:text-2xl">
+                                            {nfts[currentIndex].title}
+                                          </h3>
+                                          <span className="ml-2.5 inline-block h-2 w-2 flex-shrink-0 rounded-full bg-green-400">
+                                            <span className="sr-only">
+                                              Verified
+                                            </span>
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-500 dark:text-[#999]">
+                                          {nfts[currentIndex].seller}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="px-4 pt-5 pb-5 sm:px-0 sm:pt-0">
+                                <dl className="space-y-8 px-4 sm:space-y-6 sm:px-6">
+                                  <div>
+                                    <dt className="text-sm font-medium text-gray-500 dark:text-white sm:w-40 sm:flex-shrink-0">
+                                      Heat Sheet
+                                    </dt>
+                                    <dd className="mt-1 text-sm text-gray-900 dark:text-[#999] sm:col-span-2">
+                                      <p>
+                                        1 Heat = 1 MATIC. You can give as many
+                                        as you want. The more heat a song has,
+                                        the higher on the queue it is.
+                                      </p>
+                                    </dd>
+                                  </div>
+                                  <div>
+                                    <dt className="text-sm font-medium text-gray-500 dark:text-white sm:w-40 sm:flex-shrink-0">
+                                      Amount of Heat to Give
+                                    </dt>
+                                    {/* <dd className="mt-1 text-sm text-gray-900 sm:col-span-2">
+                                      New York, NY, USA
+                                    </dd> */}
+                                    <Input
+                                      type="number"
+                                      placeholder="ex. 0.1"
+                                      className="mt-1"
+                                    />
+                                  </div>
+                                  <div>
+                                    <Button
+                                      className="w-full"
+                                      variant="destructive"
+                                    >
+                                      Give Heat <Flame />
+                                    </Button>
+                                  </div>
+                                </dl>
+                              </div>
+                            </div>
+                          </SheetDescription>
+                        </SheetHeader>
+                      </SheetContent>
+                    </Sheet>
+                    {/* <Dialog>
                       <DialogTrigger>
                         <Button className="w-96" variant="default">
                           Give Heat <Flame />
@@ -640,13 +700,33 @@ export default function ListenPage() {
                           <Button type="submit">Save changes</Button>
                         </DialogFooter>
                       </DialogContent>
-                    </Dialog>
+                    </Dialog> */}
                   </div>
 
                   <div className="flex w-full mt-4">
-                    <Button className="w-full" variant="outline">
+                    {/* <Button className="w-full" variant="outline">
                       More Info
-                    </Button>
+                    </Button> */}
+                    <Dialog>
+                      <DialogTrigger>
+                        <Button className="w-96" variant="outline">
+                          More Info
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Edit profile</DialogTitle>
+                          <DialogDescription>
+                            Make changes to your profile here. Click save when
+                            you are done.
+                          </DialogDescription>
+                        </DialogHeader>
+
+                        <DialogFooter>
+                          <Button type="submit">Save changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </div>
               ) : (
@@ -654,14 +734,14 @@ export default function ListenPage() {
               )}
             </main>
 
-            <aside className="relative hidden w-96 flex-shrink-0 overflow-y-auto border-l border-gray-200 bg-gray-100 xl:flex xl:flex-col">
+            <aside className="relative hidden w-96 flex-shrink-0 overflow-y-auto border-l border-gray-200 dark:border-[#333] bg-gray-100 dark:bg-black xl:flex xl:flex-col">
               {/* Secondary column (hidden on smaller screens) */}
-              <div className="bg-white ">
+              <div className="">
                 <div>
                   <div></div>
                 </div>
               </div>
-              <h1 className="mt-6 ml-3 text-gray-500 text-lg uppercase tracking-wider font-medium">
+              <h1 className="mt-6 ml-3 text-gray-500 dark:text-white text-lg uppercase tracking-wider font-medium">
                 Heat Leaderboard
               </h1>
               <ul role="list" className="p-4 space-y-4">
@@ -675,20 +755,22 @@ export default function ListenPage() {
                       animate={{ opacity: 1, translateX: 0 }}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                     >
-                      <div className="flex items-center overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                      <div className="flex items-center overflow-hidden rounded-lg dark:bg-[#111] dark:border-[#333] border px-4 py-5 shadow sm:p-6">
                         {/* Image */}
-                        <img
+                        <Image
                           className="w-16 h-16 mr-4 rounded-md"
                           src={nft.coverImage}
                           alt="Image description"
+                          width={64}
+                          height={64}
                         />
 
                         {/* Content */}
                         <div>
-                          <dt className="truncate text-sm font-medium text-gray-500">
+                          <dt className="truncate text-sm font-medium text-gray-500 dark:text-white">
                             {nft.title}
                           </dt>
-                          <dd className="mt-1 flex text-3xl font-semibold tracking-tight text-gray-900">
+                          <dd className="mt-1 flex text-3xl font-semibold tracking-tight text-gray-900 dark:text-[#999]">
                             {nft.heatCount} <Flame className="mt-1.5" />
                           </dd>
                         </div>

@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+[data-theme='dark'] {
+    @apply bg-black text-gray-100 transition-all duration-300;
+  }
+  
+  [data-theme='light'] {
+    @apply bg-white text-black transition-all duration-300;
+  }

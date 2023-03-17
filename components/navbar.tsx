@@ -40,7 +40,10 @@ import {
 import { Button } from "@/components/ui/button";
 import { Laptop, Moon, Sun } from "lucide-react";
 
+import { useTheme } from "next-themes";
+
 export default function Navbar() {
+  const { theme, setTheme } = useTheme();
   const address = useAddress();
   const isOnWrongNetwork = useNetworkMismatch();
   const [, switchNetwork] = useNetwork();
@@ -50,13 +53,15 @@ export default function Navbar() {
     setModalMounted(true);
   }, []);
   return (
-    <header className="bg-white">
+    <header>
       <nav
         className="mx-auto flex max-w-7xl items-center justify-between gap-x-6 p-6 lg:px-8"
         aria-label="Global"
       >
         <div className="flex lg:flex-1">
-          <Link href="/">Etherwav</Link>
+          <Link className="text-2xl" href="/">
+            Etherwav
+          </Link>
         </div>
         <div className="hidden lg:flex lg:gap-x-12">
           <NavigationMenu>
@@ -157,15 +162,15 @@ export default function Navbar() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-32">
               <DropdownMenuGroup>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("light")}>
                   <Sun className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>Light</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("dark")}>
                   <Moon className="mr-2 h-4 w-4" />
-                  <span>Billing</span>
+                  <span>Dark</span>
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setTheme("system")}>
                   <Laptop className="mr-2 h-4 w-4" />
                   <span>System</span>
                 </DropdownMenuItem>
@@ -188,7 +193,7 @@ const ListItem = React.forwardRef<
         <a
           ref={ref}
           className={cn(
-            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 dark:hover:bg-slate-700 dark:focus:bg-slate-700",
+            "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 dark:hover:bg-[#555] dark:focus:bg-[#555]",
             className
           )}
           {...props}
