@@ -21,8 +21,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Trash } from "lucide-react";
-import { useState } from "react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+
+import { Loader2, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
+import WalletModal from "@/components/wallet-modal";
 
 const products = [
   {
@@ -82,6 +95,10 @@ const TextAnimation = ({ address = "" }) => {
 
   return <>{renderLetters()}</>;
 };
+const animationVariants = {
+  hidden: { opacity: 0, y: -50 },
+  visible: (i: any) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1 } }),
+};
 
 export default function Example() {
   const address = useAddress();
@@ -100,6 +117,13 @@ export default function Example() {
   const [genre, setGenre] = useState("");
 
   const [songTitle, setSongTitle] = useState("");
+
+  const [loading, setLoading] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function handleDrop(e: any) {
     e.preventDefault();
@@ -188,6 +212,7 @@ export default function Example() {
 
   async function listNFTForSale() {
     try {
+      setLoading(true);
       // @ts-ignore
       const web3 = new Web3(window.ethereum);
       const url = await uploadToIPFS();
@@ -220,6 +245,7 @@ export default function Example() {
             .send({ from: accounts[0] })
             .on("receipt", function () {
               console.log("listed");
+              setLoading(false);
             });
         });
     } catch (error) {
@@ -230,143 +256,168 @@ export default function Example() {
   return (
     <>
       <Navbar />
-      <div className="bg-gray-50">
+      <div className="bg-gray-50 dark:bg-black">
         <div className="mx-auto max-w-2xl px-4 pt-16 pb-24 sm:px-6 lg:max-w-7xl lg:px-8">
-          <h2 className="sr-only">Checkout</h2>
-
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
             <div>
-              <div>
-                <h2 className="text-lg font-medium text-gray-900">
-                  Upload song to Etherwav
-                </h2>
-
-                <div className="mt-4">
-                  <label
-                    htmlFor="email-address"
-                    className="block text-sm font-medium text-gray-700"
+              <AnimatePresence>
+                <div>
+                  <motion.h2
+                    className="text-lg font-medium text-gray-900 dark:text-white"
+                    custom={0}
+                    initial="hidden"
+                    animate="visible"
+                    variants={animationVariants}
                   >
-                    Choose song
-                  </label>
-                  <div className="mt-1">
-                    <div className="rounded-md border">
-                      <div className="mb-4 p-4">
-                        <input
-                          id="fileInput"
-                          type="file"
-                          accept="audio/*"
-                          // onChange={handleFileInputChange}
-                          onChange={onChange}
-                          className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                      </div>
-                      <div
-                        className=" p-4 text-center"
-                        onDrop={handleDrop2}
-                        onDragOver={handleDragOver2}
-                      >
-                        <p className="text-gray-600">
-                          Drag and drop a file here or choose a file.
-                        </p>
+                    Upload song to Etherwav
+                  </motion.h2>
+
+                  <motion.div
+                    className="mt-4"
+                    custom={1}
+                    initial="hidden"
+                    animate="visible"
+                    variants={animationVariants}
+                  >
+                    <label
+                      htmlFor="email-address"
+                      className="block text-sm font-medium text-gray-700 dark:text-white"
+                    >
+                      Choose song
+                    </label>
+                    <div className="mt-1">
+                      <div className="rounded-md border dark:border-[#333]">
+                        <div className="mb-4 p-4">
+                          <input
+                            id="fileInput"
+                            type="file"
+                            accept="audio/*"
+                            // onChange={handleFileInputChange}
+                            onChange={onChange}
+                            className="appearance-none border dark:border-[#333] rounded w-full py-2 px-3 text-gray-700 dark:text-white leading-tight focus:outline-none focus:shadow-outline"
+                          />
+                        </div>
+                        <div
+                          className=" p-4 text-center"
+                          onDrop={handleDrop2}
+                          onDragOver={handleDragOver2}
+                        >
+                          <p className="text-gray-600 dark:text-white">
+                            Drag and drop a file here or choose a file.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
 
-                <div className="mt-4">
-                  <label
-                    htmlFor="email-address"
-                    className="block text-sm font-medium text-gray-700"
+                  <motion.div
+                    className="mt-4"
+                    custom={2}
+                    initial="hidden"
+                    animate="visible"
+                    variants={animationVariants}
                   >
-                    Choose cover image
-                  </label>
-                  <div className="mt-1">
-                    <div className="rounded-md border">
-                      <div className="mb-4 p-4">
-                        <input
-                          id="fileInput"
-                          type="file"
-                          accept="image/*"
-                          // onChange={handleFileInputChange}
-                          onChange={(e) => {
-                            createCoverImage(e);
-                            handleFileInputChange(e);
-                          }}
-                          className="appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        />
-                      </div>
-                      <div
-                        className=" p-4 text-center"
-                        onDrop={handleDrop}
-                        onDragOver={handleDragOver}
-                      >
-                        <p className="text-gray-600">
-                          Drag and drop a file here or choose a file.
-                        </p>
+                    <label
+                      htmlFor="email-address"
+                      className="block text-sm font-medium text-gray-700 dark:text-white"
+                    >
+                      Choose cover image
+                    </label>
+                    <div className="mt-1">
+                      <div className="rounded-md border dark:border-[#333]">
+                        <div className="mb-4 p-4">
+                          <input
+                            id="fileInput"
+                            type="file"
+                            accept="image/*"
+                            // onChange={handleFileInputChange}
+                            onChange={(e) => {
+                              createCoverImage(e);
+                              handleFileInputChange(e);
+                            }}
+                            className="appearance-none border dark:border-[#333] rounded w-full py-2 px-3 text-gray-700 dark:text-white leading-tight focus:outline-none focus:shadow-outline"
+                          />
+                        </div>
+                        <div
+                          className=" p-4 text-center"
+                          onDrop={handleDrop}
+                          onDragOver={handleDragOver}
+                        >
+                          <p className="text-gray-600 dark:text-white">
+                            Drag and drop a file here or choose a file.
+                          </p>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </div>
+                  </motion.div>
 
-                <div className="mt-4">
-                  {/* <label
-                  htmlFor="email-address"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Song title
-                </label>
-                <div className="mt-1">
-                  <input
-                    type="email"
-                    id="email-address"
-                    name="email-address"
-                    autoComplete="email"
-                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-                  /> */}
-
-                  <Label htmlFor="email">Title</Label>
-                  <Input
-                    type="text"
-                    onChange={(e) => {
-                      setSongTitle(e.target.value);
-                      // @ts-ignore
-                      updateFormInput({ ...formInput, title: e.target.value });
-                    }}
-                    id="title"
-                    placeholder="Song title..."
-                    className=""
-                  />
-                </div>
-
-                <div className="mt-4">
-                  <Label htmlFor="email">Genre</Label>
-                  <Select
-                    onValueChange={(e) => {
-                      setGenre(e);
-                      // @ts-ignore
-                      updateFormInput({ ...formInput, genre: e });
-                    }}
+                  <motion.div
+                    className="mt-4"
+                    custom={3}
+                    initial="hidden"
+                    animate="visible"
+                    variants={animationVariants}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select genre" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="light">Light</SelectItem>
-                      <SelectItem value="dark">Dark</SelectItem>
-                      <SelectItem value="system">System</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    <Label htmlFor="email">Title</Label>
+                    <Input
+                      type="text"
+                      onChange={(e) => {
+                        setSongTitle(e.target.value);
+                        // @ts-ignore
+                        updateFormInput({
+                          ...formInput,
+                          title: e.target.value,
+                        });
+                      }}
+                      id="title"
+                      placeholder="Song title..."
+                      className=""
+                    />
+                  </motion.div>
+
+                  <motion.div
+                    className="mt-4"
+                    custom={4}
+                    initial="hidden"
+                    animate="visible"
+                    variants={animationVariants}
+                  >
+                    <Label htmlFor="email">Genre</Label>
+                    <Select
+                      onValueChange={(e) => {
+                        setGenre(e);
+                        // @ts-ignore
+                        updateFormInput({ ...formInput, genre: e });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select genre" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                        <SelectItem value="system">System</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </motion.div>
                 </div>
-              </div>
+              </AnimatePresence>
             </div>
 
             {/* Order summary */}
             <div className="mt-10 lg:mt-0">
-              <h2 className="text-lg font-medium text-gray-900">
-                Confirm Upload
+              <h2 className="text-lg font-medium text-gray-900 dark:text-white">
+                Upload Preview
               </h2>
 
-              <div className="mt-4 rounded-lg border border-gray-200 bg-white shadow-sm">
+              {/* <div className="mt-4 rounded-lg border border-gray-200 dark:border-[#333] bg-white dark:bg-black shadow-sm"> */}
+              <motion.div
+                className="mt-4 rounded-lg border border-gray-200 dark:border-[#333] bg-white dark:bg-black shadow-sm"
+                custom={5}
+                initial="hidden"
+                animate="visible"
+                variants={animationVariants}
+              >
                 <h3 className="sr-only">Items in your cart</h3>
                 <ul role="list" className="divide-y divide-gray-200">
                   {products.map((product) => (
@@ -380,7 +431,7 @@ export default function Example() {
                             className="w-20 rounded-md"
                           />
                         ) : (
-                          <div className="bg-gray-200 w-20 h-20 animate-pulse rounded-md"></div>
+                          <div className="bg-gray-200 dark:bg-[#333] w-20 h-20 animate-pulse rounded-md" />
                         )}
                       </div>
 
@@ -389,36 +440,35 @@ export default function Example() {
                           <div className="min-w-0 flex-1">
                             <h4>
                               {songTitle ? (
-                                <span className=" text-lg text-gray-700">
+                                <span className=" text-lg text-gray-700 dark:text-white">
                                   {songTitle}
                                 </span>
                               ) : (
-                                <div className="bg-gray-200 w-1/3 h-6 animate-pulse rounded-md">
+                                <div className="bg-gray-200 dark:bg-[#333] w-3/3 h-6 animate-pulse rounded-md">
                                   &nbsp;Song Title
                                 </div>
                               )}
                             </h4>
-                            {/* <p className="mt-1 text-sm text-gray-500">BLACK</p> */}
-                            {/* <span className="text-sm">{address}</span> */}
+
                             <AnimatePresence>
                               {address ? (
                                 <TextAnimation address={address} />
                               ) : (
-                                <div className="mt-1 bg-gray-200 w-1/3 h-6 animate-pulse rounded-md">
+                                <div className="mt-1 bg-gray-200 dark:bg-[#333] w-3/3 h-6 animate-pulse rounded-md">
                                   &nbsp;Address
                                 </div>
                               )}
                             </AnimatePresence>
                             {/* <p className="mt-1 text-sm text-gray-500">GENRE</p> */}
-                            <span>
+                            <h4>
                               {genre ? (
                                 <span className="text-lg">{genre}</span>
                               ) : (
-                                <div className="mt-1 bg-gray-200 w-1/3 h-6 animate-pulse rounded-md">
+                                <div className="mt-1 bg-gray-200 dark:bg-[#333] w-1/3 h-6 animate-pulse rounded-md">
                                   &nbsp;Genre
                                 </div>
                               )}
-                            </span>
+                            </h4>
                           </div>
                         </div>
                       </div>
@@ -426,17 +476,35 @@ export default function Example() {
                   ))}
                 </ul>
 
-                <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
-                  <Button
-                    onClick={listNFTForSale}
-                    type="submit"
-                    variant="default"
-                    className="w-full"
-                  >
-                    Upload song!
-                  </Button>
+                <div className="border-t border-gray-200 dark:border-[#333] py-6 px-4 sm:px-6">
+                  {!loading &&
+                    (address ? (
+                      <Button
+                        onClick={listNFTForSale}
+                        type="submit"
+                        variant="default"
+                        className="w-full"
+                        disabled={
+                          !formInput.title ||
+                          !formInput.genre ||
+                          !fileUrl ||
+                          !formInput.coverImage
+                        }
+                      >
+                        Upload song!
+                      </Button>
+                    ) : (
+                      <div className="w-full">{mounted && <WalletModal />}</div>
+                    ))}
+
+                  {loading && (
+                    <Button className="w-full" disabled>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Please confirm both transactions
+                    </Button>
+                  )}
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
         </div>
