@@ -239,34 +239,74 @@ export default function ListenPage() {
                       Queue
                     </h1>
                     <ScrollArea className="h-96">
-                      {Array.from({ length: 20 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
-                        >
-                          <div className="flex-shrink-0">
-                            <img
-                              className="h-10 w-10 rounded-full"
-                              src="https://imgs.search.brave.com/oSBbiSRQWESLXT7dvYa2k3wdxoNOTNpg5MWjni2rHhQ/rs:fit:1200:1200:1/g:ce/aHR0cDovL3RoZXdv/d3N0eWxlLmNvbS93/cC1jb250ZW50L3Vw/bG9hZHMvMjAxNS8w/MS9uYXR1cmUtaW1h/Z2VzLmpwZw"
-                              alt=""
-                            />
-                          </div>
-                          <div className="min-w-0 flex-1">
-                            <a href="#" className="focus:outline-none">
-                              <span
-                                className="absolute inset-0"
-                                aria-hidden="true"
+                      {/* {Array.from({ length: 20 }).map((_, i) => ( */}
+
+                      {nfts.length > 0 ? (
+                        nfts.map((nft, i) => (
+                          <div
+                            key={i}
+                            className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+                          >
+                            <div className="flex-shrink-0">
+                              <img
+                                className="h-10 w-10 rounded-md"
+                                src={nft.coverImage}
+                                alt=""
                               />
-                              <p className="text-sm font-medium text-gray-900">
-                                NAMEEEEE
-                              </p>
-                              <p className="truncate text-sm text-gray-500">
-                                ROLEEEEE
-                              </p>
-                            </a>
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <a href="#" className="focus:outline-none">
+                                <span
+                                  className="absolute inset-0"
+                                  aria-hidden="true"
+                                />
+                                <p className="text-sm font-medium text-gray-900">
+                                  {nft.title}
+                                </p>
+                                <p className="truncate text-sm text-gray-500">
+                                  {nft.seller.slice(0, 5)}...
+                                  {nft.seller.slice(-4)}
+                                </p>
+                              </a>
+                            </div>
                           </div>
+                        ))
+                      ) : (
+                        // array of nfts
+                        <div>
+                          {Array.from({ length: 20 }).map((_, i) => (
+                            <div
+                              key={i}
+                              className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 bg-white px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+                            >
+                              <div className="flex-shrink-0">
+                                {/* <img
+                                  className="h-10 w-10 rounded-md"
+                                  src={nft.coverImage}
+                                  alt=""
+                                /> */}
+                                <div className="bg-gray-200 w-10 h-10 animate-pulse rounded-md"></div>
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <a href="#" className="focus:outline-none">
+                                  <span
+                                    className="absolute inset-0"
+                                    aria-hidden="true"
+                                  />
+                                  <div className="text-sm font-medium text-gray-900">
+                                    <div className="mt-1 bg-gray-200 w-1/3 h-4 animate-pulse rounded-md"></div>
+                                  </div>
+                                  <div className="truncate text-sm text-gray-500">
+                                    {/* {nft.seller.slice(0, 5)}...
+                                    {nft.seller.slice(-4)} */}
+                                    <div className="mt-1 bg-gray-200 w-1/3 h-4 animate-pulse rounded-md"></div>
+                                  </div>
+                                </a>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      )}
                     </ScrollArea>
 
                     <div>
@@ -445,7 +485,22 @@ export default function ListenPage() {
                     </HoverCard>
                     <div className="mt-4">
                       <div className="flex justify-between items-center text-center space-x-4">
-                        <h1>0:00</h1>
+                        <h1>
+                          {!isNaN(audioRef.current?.currentTime)
+                            ? `${Math.floor(
+                                audioRef.current.currentTime / 60
+                              )}:${
+                                Math.floor(audioRef.current.currentTime % 60) <
+                                10
+                                  ? `0${Math.floor(
+                                      audioRef.current.currentTime % 60
+                                    )}`
+                                  : Math.floor(
+                                      audioRef.current.currentTime % 60
+                                    )
+                              }`
+                            : "0:00"}
+                        </h1>
                         <Progress value={progress} />
                         <div>
                           {!isNaN(duration) && audioRef.current?.currentTime
@@ -603,33 +658,68 @@ export default function ListenPage() {
                 Heat Leaderboard
               </h1>
               <ul role="list" className="p-4 space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, translateX: -50 }}
-                    animate={{ opacity: 1, translateX: 0 }}
-                    transition={{ duration: 0.5, delay: i * 0.1 }}
-                  >
-                    <div className="flex items-center overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                      {/* Image */}
-                      <img
-                        className="w-16 h-16 mr-4 rounded-md"
-                        src="https://cdn.openai.com/labs/images/3D%20render%20of%20a%20cute%20tropical%20fish%20in%20an%20aquarium%20on%20a%20dark%20blue%20background,%20digital%20art.webp?v=1"
-                        alt="Image description"
-                      />
+                {/* {Array.from({ length: 5 }).map((_, i) => ( */}
 
-                      {/* Content */}
-                      <div>
-                        <dt className="truncate text-sm font-medium text-gray-500">
-                          name
-                        </dt>
-                        <dd className="mt-1 text-3xl font-semibold tracking-tight text-gray-900">
-                          stat
-                        </dd>
+                {topThreeNfts.length > 0 ? (
+                  topThreeNfts.map((nft, index) => (
+                    <motion.div
+                      key={index}
+                      initial={{ opacity: 0, translateX: -50 }}
+                      animate={{ opacity: 1, translateX: 0 }}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                    >
+                      <div className="flex items-center overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                        {/* Image */}
+                        <img
+                          className="w-16 h-16 mr-4 rounded-md"
+                          src={nft.coverImage}
+                          alt="Image description"
+                        />
+
+                        {/* Content */}
+                        <div>
+                          <dt className="truncate text-sm font-medium text-gray-500">
+                            {nft.title}
+                          </dt>
+                          <dd className="mt-1 flex text-3xl font-semibold tracking-tight text-gray-900">
+                            {nft.heatCount} <Flame className="mt-1.5" />
+                          </dd>
+                        </div>
                       </div>
-                    </div>
-                  </motion.div>
-                ))}
+                    </motion.div>
+                  ))
+                ) : (
+                  <div>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, translateX: -50 }}
+                        animate={{ opacity: 1, translateX: 0 }}
+                        transition={{ duration: 0.5, delay: 0.1 }}
+                      >
+                        <div className="flex items-center overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                          {/* Image */}
+                          {/* <img
+                          className="w-16 h-16 mr-4 rounded-md"
+                          src={nft.coverImage}
+                          alt="Image description"
+                        /> */}
+                          <div className="bg-gray-200 w-20 h-20 animate-pulse rounded-md"></div>
+
+                          {/* Content */}
+                          <div className="ml-1">
+                            <dt className="truncate text-sm font-medium text-gray-500">
+                              <div className="mt-1 bg-gray-200 w-36 h-8 animate-pulse rounded-md"></div>
+                            </dt>
+                            <dd className="mt-1 flex text-3xl font-semibold tracking-tight text-gray-900">
+                              <div className="bg-gray-200 w-24 h-8 animate-pulse rounded-md"></div>
+                            </dd>
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </ul>
             </aside>
           </div>
