@@ -4,9 +4,7 @@ import MusicLoader from "@/components/music-loader";
 import Web3 from "web3";
 import Radio from "../../backend/build/contracts/Radio.json";
 import NFT from "../../backend/build/contracts/NFT.json";
-import Marquee from "react-fast-marquee";
 import { motion, AnimatePresence } from "framer-motion";
-import Navbar from "@/components/navbar";
 import axios from "axios";
 import Image from "next/image";
 import {
@@ -90,6 +88,7 @@ import LeaderboardLoader from "@/components/leaderboard-loader";
 import QueueLoader from "@/components/queue-loader";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
+import UploadAlert from "@/components/upload-alert";
 function classNames(...classes: any[]) {
   return classes.filter(Boolean).join(" ");
 }
@@ -222,25 +221,7 @@ export default function ListenPage() {
 
   return (
     <div className="h-screen">
-      <Navbar />
-      <div className="border-b border-gray-200 dark:border-[#333] bg-gray-100 dark:bg-neutral-900 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <Info className="h-5 w-5 " aria-hidden="true" />
-          </div>
-          <div className="ml-3 flex-1 md:flex md:justify-between">
-            <p className="text-sm ">
-              Want to upload your own songs? Check out the upload page!
-            </p>
-            <p className="mt-3 text-sm md:mt-0 md:ml-6">
-              <Link href="/upload" className="whitespace-nowrap font-medium ">
-                Upload your songs here!
-                <span aria-hidden="true"> &rarr;</span>
-              </Link>
-            </p>
-          </div>
-        </div>
-      </div>
+      <UploadAlert />
       <div className="flex h-full">
         {/* Static sidebar for desktop */}
         <div className="hidden lg:flex lg:flex-shrink-0">
@@ -338,40 +319,6 @@ export default function ListenPage() {
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
-          <div className="lg:hidden">
-            <div className="flex items-center justify-between border-b border-gray-200 bg-gray-50 px-4 py-1.5">
-              <div>
-                <img
-                  className="h-8 w-auto"
-                  src="https://tailwindui.com/img/logos/mark.svg?color=indigo&shade=600"
-                  alt="Your Company"
-                />
-              </div>
-              <div>
-                {/* <Sheet>
-                  <SheetTrigger>
-                    <Button variant="ghost">
-                      <Menu
-                        className="h-6 w-6 text-gray-400"
-                        aria-hidden="true"
-                      />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent>
-                    <SheetHeader>
-                      <SheetTitle>Are you sure absolutely sure?</SheetTitle>
-                      <SheetDescription>
-                        This action cannot be undone. This will permanently
-                        delete your account and remove your data from our
-                        servers.
-                      </SheetDescription>
-                    </SheetHeader>
-                  </SheetContent>
-                </Sheet> */}
-              </div>
-            </div>
-          </div>
-
           <div className="relative z-0 flex flex-1 overflow-hidden">
             <main className=" z-0 flex-1 overflow-y-auto focus:outline-none flex items-center justify-center relative">
               {/* Main area */}

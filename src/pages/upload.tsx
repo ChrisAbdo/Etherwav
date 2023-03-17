@@ -3,14 +3,8 @@ import Radio from "backend/build/contracts/Radio.json";
 import NFT from "backend/build/contracts/NFT.json";
 
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  useNetworkMismatch,
-  useAddress,
-  ConnectWallet,
-  useNetwork,
-} from "@thirdweb-dev/react";
+import { useAddress } from "@thirdweb-dev/react";
 
-import Navbar from "@/components/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,19 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
 
-import { Loader2, Trash } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import WalletModal from "@/components/wallet-modal";
 
@@ -255,7 +238,6 @@ export default function Example() {
 
   return (
     <>
-      <Navbar />
       <div className="bg-gray-50 dark:bg-black">
         <div className="mx-auto max-w-2xl px-4 pt-16 pb-24 sm:px-6 lg:max-w-7xl lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
