@@ -2,6 +2,8 @@ import Web3 from "web3";
 import Radio from "backend/build/contracts/Radio.json";
 import NFT from "backend/build/contracts/NFT.json";
 
+import { useToast } from "@/hooks/ui/use-toast";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useAddress } from "@thirdweb-dev/react";
 
@@ -84,6 +86,7 @@ const animationVariants = {
 };
 
 export default function Example() {
+  const { toast } = useToast();
   const address = useAddress();
 
   const [formInput, updateFormInput] = useState({
@@ -196,6 +199,10 @@ export default function Example() {
   async function listNFTForSale() {
     try {
       setLoading(true);
+      toast({
+        title: "Please confirm both transactions in your wallet",
+        description: "Thanks for uploading your song!",
+      });
       // @ts-ignore
       const web3 = new Web3(window.ethereum);
       const url = await uploadToIPFS();
@@ -229,6 +236,10 @@ export default function Example() {
             .on("receipt", function () {
               console.log("listed");
               setLoading(false);
+              toast({
+                title: "Your song has been uploaded!",
+                description: "You can find it on the listen page",
+              });
             });
         });
     } catch (error) {

@@ -6,6 +6,8 @@ import { ThemeProvider } from "next-themes";
 import { ChainId, ThirdwebProvider } from "@thirdweb-dev/react";
 import Navbar from "@/components/navbar";
 
+import { Toaster } from "@/components/ui/toaster";
+
 const activeChainId = ChainId.Mumbai;
 
 function MyApp({ Component, pageProps }: AppProps) {
@@ -14,6 +16,7 @@ function MyApp({ Component, pageProps }: AppProps) {
       <ThemeProvider>
         <Navbar />
         <Component {...pageProps} />
+        <Toaster />
       </ThemeProvider>
     </ThirdwebProvider>
   );

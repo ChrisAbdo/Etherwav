@@ -4,6 +4,7 @@ import MusicLoader from "@/components/music-loader";
 import Web3 from "web3";
 import Radio from "../../backend/build/contracts/Radio.json";
 import NFT from "../../backend/build/contracts/NFT.json";
+import { useToast } from "@/hooks/ui/use-toast";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import Image from "next/image";
@@ -21,6 +22,7 @@ import {
   Moon,
   Pause,
   Play,
+  Loader2,
   Search,
   SearchIcon,
   Sun,
@@ -55,6 +57,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+
 import {
   Dialog,
   DialogContent,
@@ -95,6 +98,8 @@ function classNames(...classes: any[]) {
 const transition = { duration: 0.5, ease: [0.43, 0.13, 0.23, 0.96] };
 
 export default function ListenPage() {
+  const { toast } = useToast();
+
   const [modalMounted, setModalMounted] = React.useState(false);
   const [nfts, setNfts] = React.useState([]);
   const [currentIndex, setCurrentIndex] = React.useState(0);
@@ -208,6 +213,44 @@ export default function ListenPage() {
     setSongsLoaded(true);
   }
 
+  async function handleGiveHeat() {
+    // Get an instance of the Radio contract
+    try {
+      toast({
+        title: "Please confirm the transaction in your wallet.",
+        description:
+          "This may take a few seconds. Please refresh the page after the transaction is confirmed to see changes.",
+      });
+      const web3 = new Web3(window.ethereum);
+      const networkId = await web3.eth.net.getId();
+      const radioContract = new web3.eth.Contract(
+        Radio.abi,
+        Radio.networks[networkId].address
+      );
+
+      // Give heat to the current NFT
+      setLoading(true);
+      radioContract.methods
+        .giveHeat(nfts[currentIndex].tokenId, heatCount)
+        .send({
+          from: window.ethereum.selectedAddress,
+
+          value: web3.utils.toWei(heatCount.toString(), "ether"),
+        })
+        .on("receipt", function () {
+          console.log("listed");
+          toast({
+            title: "Heat given!",
+            description:
+              "Your heat has been given to the current song. Please refresh the page to see changes.",
+          });
+          setLoading(false);
+        });
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   function handleNext() {
     setDirection("right");
     setCurrentIndex((currentIndex + 1) % nfts.length);
@@ -239,7 +282,10 @@ export default function ListenPage() {
                         nfts.map((nft, i) => (
                           <div
                             key={i}
-                            className="relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 dark:border-[#333] dark:bg-[#111] px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400"
+                            onClick={() => {
+                              setCurrentIndex(i);
+                            }}
+                            className="cursor-pointer relative mb-2 flex items-center space-x-3 rounded-lg border border-gray-300 dark:border-[#333] dark:bg-[#111] dark:hover:bg-[#333] px-6 py-5 shadow-sm focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2 hover:border-gray-400 transition-all duration-300"
                           >
                             <div className="flex-shrink-0">
                               <Image
@@ -590,15 +636,32 @@ export default function ListenPage() {
                                       type="number"
                                       placeholder="ex. 0.1"
                                       className="mt-1"
+                                      onChange={(event) =>
+                                        setHeatCount(event.target.value)
+                                      }
                                     />
                                   </div>
                                   <div>
-                                    <Button
-                                      className="w-full"
-                                      variant="destructive"
-                                    >
-                                      Give Heat <Flame />
-                                    </Button>
+                                    {!loading && (
+                                      <Button
+                                        onClick={handleGiveHeat}
+                                        className="w-full"
+                                        variant="destructive"
+                                      >
+                                        Give Heat <Flame />
+                                      </Button>
+                                    )}
+
+                                    {loading && (
+                                      <Button
+                                        className="w-full"
+                                        variant="destructive"
+                                        disabled
+                                      >
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Giving heat...
+                                      </Button>
+                                    )}
                                   </div>
                                 </dl>
                               </div>
